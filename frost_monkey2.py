@@ -7,9 +7,9 @@
   connects to remote controller
 
 """
-#this is still a comment
 
 import socket
+
 
 from time import sleep
 from mininet.net import Mininet
@@ -17,9 +17,33 @@ from mininet.node import OVSSwitch, Controller, RemoteController
 from mininet.topo import Topo
 from mininet.cli import CLI
 
+from optparse import OptionParser
+
+parser = OptionParser(usage='usage: %prog -c x.x.x.x')
+parser.add_option("-c", "--controller", dest="controllerIP", 
+	help="specify the IP of your Controller for Mininet",
+	metavar="CONTR_IP")
+parser.add_option("-p", "--port", dest="port", help="specify the port of Mininet Controller",
+	default=6633)
+(options, args) = parser.parse_args()
+
+if not options.controllerIP:
+	parser.error('\n* Controller IP must be specified. In the VM try sudo route -n or ifconfig to find the IP.\n' + 
+		'* Try sudo dhclient eth1 to set an IP if none have been set yet. \n' + 
+		'* You want the non-zero IP under Gateway.\n' +
+	 	'* Other configurations require running ifconfig on the Host OS ' +
+	 	'and finding inet addr for vboxnet0' + '\n' + 
+	 	'================================\n' +
+	 	'* Also, this script must run before starting the Controller in Eclipse on Host OS\n' +
+	 	'* And you have to wait for it to timeout trying to reach the remote Controller, \n' +
+	 	'at which point it will build the Mininet topology and then ask you to start the Controller')
+
+
 net = Mininet()
 #will be used for controller
-c1 = net.addController('c1', ip='192.168.56.1')
+#c1 = net.addController('c1', ip='192.168.56.1')
+c1 = net.addController(name='c1', controller=RemoteController, 
+	ip=options.controllerIP, port=options.port)
 
 def createFullMesh( numSw=4 ):
 	hosts = [ net.addHost( 'h%d'%i )
@@ -93,7 +117,7 @@ def startListeningLoop():
 		print 'Connected by ', addr
 		data = conn.recv(1024)
 		if not data: break
-		if data == "q":
+		if data == "q2":
 			print "terminating connection"
 			break
 		else:
