@@ -70,7 +70,11 @@ net.start()
 net.configLinkStatus( 's2', 's3', 'down' )
 
 """
-
+""" 
+To Do for DUMP-FLOWS 11/22/2014
+dump-flows (dpctl) is not working. Gives the following error message:
+	 dpctl failed to send packet to switch Connection refused
+"""
 
 import socket
 
@@ -102,9 +106,13 @@ if not options.controllerIP:
 	 	'* And you have to wait for it to timeout trying to reach the remote Controller, \n' +
 	 	'at which point it will build the Mininet topology and then ask you to start the Controller')
 
+class BetterSwitch( OVSSwitch ):
+	""" Extends OVSSwitch to provide isUp property """
+	isUp = True #True by default, False iff all interfaces are down
 
-net = Mininet()
-#will be used for controller
+
+
+net = Mininet( switch = BetterSwitch )
 #c1 = net.addController('c1', ip='192.168.56.1')
 c1 = net.addController(name='c1', controller=RemoteController, 
 	ip=options.controllerIP, port=options.port)
@@ -112,7 +120,7 @@ c1 = net.addController(name='c1', controller=RemoteController,
 def createFullMesh( numSw=4 ):
 	hosts = [ net.addHost( 'h%d'%i )
 				for i in range(1, numSw+1) ]
-	switches = [ net.addSwitch( 's%d'%i )
+	switches = [ net.addSwitch( 's%d'%i, cls = BetterSwitch )
 				for i in range(1, numSw+1) ]
 	for i in range(0, numSw):
 		print "connecting host and switch ", i+1
@@ -126,6 +134,7 @@ def createFullMesh( numSw=4 ):
 	c1.start()
 	for i in range(0, numSw):
 		switches[i].start( [c1] )
+	CLI ( net )
 	return net
 
 """takes sw1 -> sw2 down
@@ -169,6 +178,10 @@ def parseObserverInput( observerInput, addr, s ):
 			switchDownEvent( parts[1].lower() )
 		if len(parts) >= 3 and parts[2]=="up":
 			switchUpEvent( parts[1].lower() )
+	elif parts[0] == "dump-flows":
+		swtch = net.getNodeByName( parts[1].lower() )
+		#print swtch.cmd("dpctl dump-flows tcp:127.0.0.1:6634")
+		#CLI.do_px("s1 dpctl dump-flows tcp:127.0.0.1:6634")
 	else:
 		sendToObserver("You fool! This option does not exist...", addr, s)
 

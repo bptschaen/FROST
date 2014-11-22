@@ -15,9 +15,10 @@ if not options.mininetIP:
 	parser.error('\n* Must specify IP address (from the view of Host OS) of Virtual Machine running Mininet')
 
 while 1:
-	msgToSend = raw_input("You are in a Mininet command line. \nEnter a command or 'h' for help and special commands\n")
+	msgToSend = raw_input("\nYou are in a Mininet command line. \nEnter a command or 'h' for help and special commands\n")
 	if msgToSend== 'h':
-		print "Entering 'h' brings up this help screen. Entering 'q' quits FROST_Observer.py and kills Mininet."
+		print "******************************************"
+		print "\nEntering 'h' brings up this help screen."
 		print "Entering 'q1' quits out of FROST_Observer.py but leaves Mininet running"
 		print "Entering 'q2' quits out of FROST_Observer.py *and* kills Mininet"
 		print "Other commands operate as standard Mininet commands." 
