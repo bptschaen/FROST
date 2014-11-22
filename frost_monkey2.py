@@ -7,6 +7,70 @@
   connects to remote controller
 
 """
+"""
+To Do for Switch Up/Down 11/22/2014
+1. Extend switch class so that it conatins a bool "isUp": False when all interfaces are 
+down, True otherwise
+2. When we call Switch Down we should iterate through all interfaces on the switch and
+bring them down. Then we should set isUp to False.
+3. When we bring a Switch Up we should iterate through all interfaces on the switch and
+bring them back up. Then we should set isUp to True.
+	-When an interface comes back up, does the Link that was on it previously come back up
+	as well? If yes, we need to make sure it doesn't Zombie-resuccitate a Switch on the other
+	end who is supposed to be down. If no, we need to make sure to resuccitate links
+	when we bring interfaces up, provided the other guy is already up too.
+
+Code Examples
+1. Extending switch class 
+from mininet.net import Mininet
+from mininet.node import OVSSwitch, Controller, RemoteController
+from mininet.topolib import TreeTopo
+from mininet.log import setLogLevel
+from mininet.cli import CLI
+
+setLogLevel( 'info' )
+
+# Two local and one "external" controller (which is actually c0)
+# Ignore the warning message that the remote isn't (yet) running
+c0 = Controller( 'c0', port=6633 )
+c1 = Controller( 'c1', port=6634 )
+c2 = RemoteController( 'c2', ip='127.0.0.1' )
+cmap = { 's1': c0, 's2': c1, 's3': c2 }
+class MultiSwitch( OVSSwitch ):
+	"Custom Switch() subclass that connects to different controllers"
+	def start( self, controllers ):
+		return OVSSwitch.start( self, [ cmap[ self.name ] ] )
+
+topo = TreeTopo( depth=2, fanout=2 )
+net = Mininet( topo=topo, switch=MultiSwitch, build=False )
+for c in [ c0, c1 ]:
+	net.addController(c)
+net.build()
+net.start()
+CLI( net )
+net.stop()
+
+2. Finding all interfaces on all switches
+ net.start()
+
+          for switch in net.switches:
+
+              name = switch.name
+
+              print 'Switch ' + name + ' has ' +
+        str(len(switch.intfList())-1) + ' interfaces'
+
+          CLI( net )
+
+          net.stop()
+
+3. Bringing a Link down 
+net.addLink( s2, s3 )
+net.start()
+net.configLinkStatus( 's2', 's3', 'down' )
+
+"""
+
 
 import socket
 
