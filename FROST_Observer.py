@@ -14,7 +14,6 @@ parser.add_option("-m", "--mininet", dest="mininetIP",
 if not options.mininetIP:
 	parser.error('\n* Must specify IP address (from the view of Host OS) of Virtual Machine running Mininet')
 
-
 while 1:
 	msgToSend = raw_input("You are in a Mininet command line. \nEnter a command or 'h' for help and special commands\n")
 	if msgToSend== 'h':

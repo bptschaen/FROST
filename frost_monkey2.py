@@ -51,7 +51,7 @@ def createFullMesh( numSw=4 ):
 	switches = [ net.addSwitch( 's%d'%i )
 				for i in range(1, numSw+1) ]
 	for i in range(0, numSw):
-		print "connecting host and switch ", i
+		print "connecting host and switch ", i+1
 		net.addLink( hosts[i], switches[i] )
 	for i in range(0, numSw):
 		for j in range(0, i):
@@ -88,23 +88,31 @@ def switchUpEvent( sw ):
 	#print 'adding connection to ', swtch
 	#swtch.start( [c1] )
 
-def parseObserverInput( observerInput ):
-	parts = observerInput.upper().split(' ')
+def parseObserverInput( observerInput, addr, s ):
+	parts = observerInput.lower().split(' ')
 	if len(parts)<1:
 		return
-	if parts[0] == "PINGALL":
+	if parts[0] == "pingall":
 		net.pingAll()
-	elif parts[0] == "LINK":
+	elif parts[0] == "link":
 		if len(parts) == 4:
-			if parts[3] == "UP":
-				linkUpEvent( parts[1].lower(), parts[2].lower() )
-			elif parts[3] == "DOWN":
-				linkDownEvent( parts[1].lower(), parts[2].lower() )
-	elif parts[0] == "SWITCH":
-		if len(parts) >= 3 and parts[2]=="DOWN":
+			if parts[3] == "up":
+				linkUpEvent( parts[1], parts[2] )
+			elif parts[3] == "down":
+				linkDownEvent( parts[1], parts[2] )
+	elif parts[0] == "switch":
+		if len(parts) >= 3 and parts[2]=="down":
 			switchDownEvent( parts[1].lower() )
-		if len(parts) >= 3 and parts[2]=="UP":
+		if len(parts) >= 3 and parts[2]=="up":
 			switchUpEvent( parts[1].lower() )
+	else:
+		sendToObserver("You fool! This option does not exist...", addr, s)
+
+def sendToObserver( msg, obsIP, sckt ):
+	print "in sendToObserver"
+	sckt.send(msg)
+	#this isn't working, will crash - should be error handling for when user in Observer inputs
+	#something that isn't a mininet command / isn't recognized
 
 def startListeningLoop():
 	HOST = ''
@@ -122,7 +130,7 @@ def startListeningLoop():
 			break
 		else:
 			print data
-			parseObserverInput( data )
+			parseObserverInput( data, addr, s )
 	conn.close()
 
 if __name__=="__main__":
