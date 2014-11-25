@@ -120,7 +120,7 @@ c1 = net.addController(name='c1', controller=RemoteController,
 def createFullMesh( numSw=4 ):
 	hosts = [ net.addHost( 'h%d'%i )
 				for i in range(1, numSw+1) ]
-	switches = [ net.addSwitch( 's%d'%i, cls = BetterSwitch )
+	switches = [ net.addSwitch( 's%d'%i, listenPort=6633+i, cls = BetterSwitch )
 				for i in range(1, numSw+1) ]
 	for i in range(0, numSw):
 		print "connecting host and switch ", i+1
@@ -155,11 +155,16 @@ def switchDownEvent( sw ):
 	print 'removing ', swtch, " from the network"
 	swtch.stop()
 
+	"""
+	swtch = net.getNodeByName(sw)
+	swtch.intfList()
+	"""
+
 def switchUpEvent( sw ):
 	swtch = net.getNodeByName(sw)
 	print 'not correctly implemented.'
 	#print 'adding connection to ', swtch
-	#swtch.start( [c1] )
+	swtch.start( [c1] )
 
 def parseObserverInput( observerInput, addr, s ):
 	parts = observerInput.lower().split(' ')
