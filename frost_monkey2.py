@@ -80,6 +80,9 @@ from mininet.node import OVSSwitch, Controller, RemoteController
 from mininet.topo import Topo
 from mininet.cli import CLI
 
+adj_matrix =[]
+#instantiate global variable adj_matrix
+
 from optparse import OptionParser
 
 parser = OptionParser(usage='usage: %prog -c x.x.x.x')
@@ -127,18 +130,22 @@ def createFullMesh( numSw=4 ):
 				net.addLink( switches[i], switches[j] )
 	net.build()
 	c1.start()
-	adj_matrix = [ [0 for x in range(numSw)] for x in range(numSw) ]
+	global adj_matrix
+	adj_matrix = [ [1 for x in range(numSw)] for x in range(numSw) ]
 	for i in range(0, numSw):
 		switches[i].start( [c1] )
-		adj_matrix[i][i] = 1
 	print adj_matrix	
-	CLI ( net )
+	#CLI ( net )
 	return net
 
 """takes sw1 -> sw2 down
 sw1 and sw2 are the switch names, must be lowercase
 e.g. s1, s2, s3,..."""
 def linkDownEvent( sw1, sw2 ):
+	x = int(sw1[1]) - 1
+	y = int(sw2[1]) - 1
+	adj_matrix[x][y] = 0;
+	adj_matrix[y][x] = 0;
 	net.configLinkStatus( sw1, sw2, 'down')
 
 """takes sw1 -> sw2 down
