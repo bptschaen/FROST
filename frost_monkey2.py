@@ -127,9 +127,10 @@ def createFullMesh( numSw=4 ):
 				net.addLink( switches[i], switches[j] )
 	net.build()
 	c1.start()
-	adj_matrix = [ [1 for x in range(numSw)] for x in range(numSw) ]
+	adj_matrix = [ [0 for x in range(numSw)] for x in range(numSw) ]
 	for i in range(0, numSw):
 		switches[i].start( [c1] )
+		adj_matrix[i][i] = 1
 	print adj_matrix	
 	CLI ( net )
 	return net
