@@ -151,8 +151,9 @@ def linkDownEvent( sw1, sw2 ):
 	adj_matrix[x][y] = 0
 	adj_matrix[y][x] = 0
 	net.configLinkStatus( sw1, sw2, 'down')
+	return net
 
-"""takes sw1 -> sw2 down
+"""brings sw1 -> sw2 up
 sw1 and sw2 are the switch names, must be lowercase
 e.g. s1, s2, s3,..."""
 def linkUpEvent( sw1, sw2 ):
@@ -172,7 +173,7 @@ def linkUpEvent( sw1, sw2 ):
 	adj_matrix[y][x] = 1
 	net.configLinkStatus( sw1, sw2, 'up')
 
-"""stops the switch input"""
+""" brings down the switch by taking down all its links """
 def switchDownEvent( sw ):
 	x = int(sw[1]) - 1
 	if (adj_matrix[x][x] == 0):
@@ -186,23 +187,29 @@ def switchDownEvent( sw ):
 		adj_matrix[j][x] = 0
 		adj_matrix[x][j] = 0
 		if (x != j):
-			net.configLinkStatus( "s"+str(x+1), "s"+str(j+1), 'down')
-	
-	#swtch.stop()
-
-	"""
-	swtch = net.getNodeByName(sw)
-	thisList = swtch.intfList()
-	#add thisList to a map that maps sw to list
-	swtch.deleteIntfs(self, checkName = True)
-	swtch.isUp = false
-	"""
+			a = "s"+str(x+1)
+			b = "s"+str(j+1)
+			print "\n taking link ", a, " ", b, " down"
+			net.configLinkStatus( a, b, 'down')
 
 def switchUpEvent( sw ):
+	x = int(sw[1]) - 1
+	if (adj_matrix[x][x] == 1):
+		print "\n Cannot bring ", sw, " up. It is already up."
+		return
+
 	swtch = net.getNodeByName(sw)
-	# retrieve list from map, iterate thru it and add those intfs with
-	# sw.addIntf(self, intf)
-	#swtch.start( [c1] )
+	print 'adding ', swtch, ' back to the network'
+
+	for j in range(0, len(adj_matrix)):
+		adj_matrix[j][x] = 1
+		adj_matrix[x][j] = 1
+		if (x != j):
+			if (adj_matrix[j][j] == 1):
+				a = "s"+str(x+1)
+				b = "s"+str(j+1)
+				print "\n bringing link ", a, " ", b, " up"
+				net.configLinkStatus( a, b, 'up')
 
 def parseObserverInput( observerInput, addr, s ):
 	parts = observerInput.lower().split(' ')
@@ -223,8 +230,8 @@ def parseObserverInput( observerInput, addr, s ):
 			switchUpEvent( parts[1].lower() )
 	elif parts[0] == "dump-flows":
 		swtch = net.getNodeByName( parts[1].lower() )
-		#print swtch.cmd("dpctl dump-flows tcp:127.0.0.1:6634")
-		CLI.do_px("s1 dpctl dump-flows tcp:127.0.0.1:6634")
+		print swtch.cmd("dpctl dump-flows tcp:127.0.0.1:6634")
+		#CLI.do_px("s1 dpctl dump-flows tcp:127.0.0.1:6634")
 	else:
 		sendToObserver("You fool! This option does not exist...", addr, s)
 
