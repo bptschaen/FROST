@@ -144,21 +144,51 @@ e.g. s1, s2, s3,..."""
 def linkDownEvent( sw1, sw2 ):
 	x = int(sw1[1]) - 1
 	y = int(sw2[1]) - 1
-	adj_matrix[x][y] = 0;
-	adj_matrix[y][x] = 0;
+	if (adj_matrix[x][y] == 0):
+		print "\n Cannot bring link between ", sw1, " and ", sw2, " down."
+		print "\n Link is already down."
+		return
+	adj_matrix[x][y] = 0
+	adj_matrix[y][x] = 0
 	net.configLinkStatus( sw1, sw2, 'down')
 
 """takes sw1 -> sw2 down
 sw1 and sw2 are the switch names, must be lowercase
 e.g. s1, s2, s3,..."""
 def linkUpEvent( sw1, sw2 ):
+	x = int(sw1[1]) - 1
+	y = int(sw2[1]) - 1
+
+	if (adj_matrix[x][x] == 0):
+		print "\n Cannot bring link between ", sw1, " and ", sw2, " back up."
+		print "\n ", sw1, " is down. ", sw2, " may also be down."
+		return
+
+	if (adj_matrix[y][y] == 0):
+		print "\n Cannot bring link between ", sw1, " and ", sw2, " back up."
+		print "\n ", sw2, " is down, even though ", sw1, " is up."
+		return
+	adj_matrix[x][y] = 1
+	adj_matrix[y][x] = 1
 	net.configLinkStatus( sw1, sw2, 'up')
 
 """stops the switch input"""
 def switchDownEvent( sw ):
+	x = int(sw[1]) - 1
+	if (adj_matrix[x][x] == 0):
+		print "\n Cannot bring ", sw, " down. It is already down."
+		return
+
 	swtch = net.getNodeByName(sw)
 	print 'removing ', swtch, " from the network"
-	swtch.stop()
+
+	for j in range(0, len(adj_matrix)):
+		adj_matrix[j][x] = 0
+		adj_matrix[x][j] = 0
+		if (x != j):
+			net.configLinkStatus( "s"+str(x+1), "s"+str(j+1), 'down')
+	
+	#swtch.stop()
 
 	"""
 	swtch = net.getNodeByName(sw)
@@ -194,7 +224,7 @@ def parseObserverInput( observerInput, addr, s ):
 	elif parts[0] == "dump-flows":
 		swtch = net.getNodeByName( parts[1].lower() )
 		#print swtch.cmd("dpctl dump-flows tcp:127.0.0.1:6634")
-		#CLI.do_px("s1 dpctl dump-flows tcp:127.0.0.1:6634")
+		CLI.do_px("s1 dpctl dump-flows tcp:127.0.0.1:6634")
 	else:
 		sendToObserver("You fool! This option does not exist...", addr, s)
 
