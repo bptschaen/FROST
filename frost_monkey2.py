@@ -9,7 +9,7 @@
 """
 """
 To Do for Switch Up/Down 11/22/2014
-1. Extend switch class so that it conatins a bool "isUp": False when all interfaces are 
+x1. Extend switch class so that it conatins a bool "isUp": False when all interfaces are 
 down, True otherwise
 2. When we call Switch Down we should iterate through all interfaces on the switch and
 bring them down. Then we should set isUp to False.
@@ -70,11 +70,6 @@ net.start()
 net.configLinkStatus( 's2', 's3', 'down' )
 
 """
-""" 
-To Do for DUMP-FLOWS 11/22/2014
-dump-flows (dpctl) is not working. Gives the following error message:
-	 dpctl failed to send packet to switch Connection refused
-"""
 
 import socket
 
@@ -132,8 +127,10 @@ def createFullMesh( numSw=4 ):
 				net.addLink( switches[i], switches[j] )
 	net.build()
 	c1.start()
+	adj_matrix = [ [1 for x in range(numSw)] for x in range(numSw) ]
 	for i in range(0, numSw):
 		switches[i].start( [c1] )
+	print adj_matrix	
 	CLI ( net )
 	return net
 
@@ -157,14 +154,17 @@ def switchDownEvent( sw ):
 
 	"""
 	swtch = net.getNodeByName(sw)
-	swtch.intfList()
+	thisList = swtch.intfList()
+	#add thisList to a map that maps sw to list
+	swtch.deleteIntfs(self, checkName = True)
+	swtch.isUp = false
 	"""
 
 def switchUpEvent( sw ):
 	swtch = net.getNodeByName(sw)
-	print 'not correctly implemented.'
-	#print 'adding connection to ', swtch
-	swtch.start( [c1] )
+	# retrieve list from map, iterate thru it and add those intfs with
+	# sw.addIntf(self, intf)
+	#swtch.start( [c1] )
 
 def parseObserverInput( observerInput, addr, s ):
 	parts = observerInput.lower().split(' ')
